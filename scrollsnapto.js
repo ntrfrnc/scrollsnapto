@@ -12,7 +12,7 @@ if (typeof Object.create !== 'function') {
 
 /*! ScrollSnapTo.js by Rafael Pawlos | http://rafaelpawlos.com | MIT license */
 
-(function ($, document, window, Promise, Object) {
+(function ($, document, window, Object) {
 
   var pluginName = 'scrollsnapto';
   var storageName = 'plugin_' + pluginName;
@@ -25,43 +25,31 @@ if (typeof Object.create !== 'function') {
       self.opts = opts;
       self.elements = elements;
       self.scrollTopContainer = $(/AppleWebKit/.test(navigator.userAgent) ? "body" : "html");
+      
+      self.getScrollTopOnStart();
 
       self.onWindowScrollStop(function (direction) {
+        self.getScrollTopOnStart();
         self.snapTo(elements, direction);
       }, opts.delay);
     },
     
-    onScrollbarEvent: function (event, callback, delay) {
-      var self = this;
-      
-      var mouseupContent = new Promise(function (resolve, reject) {
-        $('body').one(event, reject);
-      });
-      var mouseupWindow = new Promise(function (resolve, reject) {
-        $(window).one(event, resolve);
-      });
-      Promise.race([mouseupWindow, mouseupContent]).then(function () {
-        setTimeout(function () {
-          callback('both');
-          self.onScrollbarEvent(event, callback, delay);
-        }, delay);
-      }, function () {
-        setTimeout(function () {
-          self.onScrollbarEvent(event, callback, delay);
-        }, delay);
-      });
-    },
-    
     onWindowScrollStop: function (callback, delay) {
       var self = this;
-      
-      delay = typeof delay !== 'undefined' ? delay : 250;
-      self.onScrollbarEvent('mouseup', callback, delay);
+              
+      self.onScrollbar('mouseup', function(){
+        if(self.scrollTopContainer.scrollTop() < self.scrollTopOnStart){
+          callback('up');
+        }
+        else if(self.scrollTopContainer.scrollTop() > self.scrollTopOnStart){
+          callback('down');
+        }
+      });
 
       $(window).on('mousewheel DOMMouseScroll', function (e) {
         self.scrollTopContainer.stop(true);
-        clearTimeout($.data(window, "scrollCheck"));
-        $.data(window, "scrollCheck", setTimeout(function () {
+        clearTimeout(self.wheelScrollTimer);
+        self.wheelScrollTimer = setTimeout(function () {
 
           if (e.originalEvent.wheelDelta >= 0 || e.originalEvent.detail < 0) {
             callback('up');
@@ -70,19 +58,24 @@ if (typeof Object.create !== 'function') {
             callback('down');
           }
 
-        }, delay+50));
+        }, delay+50);
       });
 
       $(window).on('resize', function (e) {
-        clearTimeout($.data(window, "resizeCheck"));
-        $.data(window, "resizeCheck", setTimeout(function () {
+        clearTimeout(self.resizeTimer);
+        self.resizeTimer = setTimeout(function () {
           callback('both');
-        }, delay + 300));
+        }, delay + 300);
       });
 
       $('body').on('mouseup', function (e) {
         if (e.button === 1) {
-          callback('both');
+          if(self.scrollTopContainer.scrollTop() < self.scrollTopOnStart){
+            callback('up');
+          }
+          else if(self.scrollTopContainer.scrollTop() > self.scrollTopOnStart){
+            callback('down');
+          }
         }
       });
       
@@ -94,12 +87,52 @@ if (typeof Object.create !== 'function') {
           callback('down');
         }
       });
+      
+      $(document).on('touchend', function (e) {
+        if(self.scrollTopContainer.scrollTop() < self.scrollTopOnStart){
+          callback('up');
+        }
+        else if(self.scrollTopContainer.scrollTop() > self.scrollTopOnStart){
+          callback('down');
+        }
+      });
+      
     },
     
-    scrollToCenter: function (wrapperCenterOffset, windowHalfHeight) {
+    getScrollTopOnStart: function(){
       var self = this;
       
-      self.scrollTopContainer.stop(true).animate({scrollTop: wrapperCenterOffset - windowHalfHeight}, self.opts.speed, self.opts.ease, self.opts.onSnapEnd);
+      $(window).one('scroll', function(){
+        self.scrollTopOnStart = self.scrollTopContainer.scrollTop();
+      });
+    },
+    
+    onScrollbar: function (event, callback) {
+      var self = this;
+
+      $('body').on(event, function () {
+        self.onContentEvent = true;
+        setTimeout(function () {
+          self.onContentEvent = false;
+        }, 10);
+      });
+      $(window).on(event, function () {
+        if (self.onContentEvent) {
+          return;
+        }
+        callback();
+      });
+    },
+    
+    scrollToCenter: function (wrapperCenterOffset) {
+      var self = this;
+      
+      self.scrollTopContainer.stop(true).animate(
+        {scrollTop: wrapperCenterOffset - self.windowHalfHeight},
+        self.opts.speed,
+        self.opts.ease,
+        self.opts.onSnapEnd
+      );    
     },
     
     switchActive: function (key) {
@@ -115,9 +148,8 @@ if (typeof Object.create !== 'function') {
     snapTo: function (elements, direction) {
       var self = this;
 
-      var windowHalfHeight = $(window).height() / 2;
-      var windowCenterOffset = $(window).scrollTop() + windowHalfHeight;
-//      var elements = document.querySelectorAll(elQuery);
+      self.windowHalfHeight = $(window).height() / 2;
+      var windowCenterOffset = $(window).scrollTop() + self.windowHalfHeight;
     
       var extracted = Object.keys(elements).map(function (key) {
         var wrapperCenterOffset = elements[key].offsetTop + elements[key].offsetHeight / 2;
@@ -143,44 +175,44 @@ if (typeof Object.create !== 'function') {
       switch (direction) {
         case 'up':
           if (extracted[0].distanceFromCenter < -0.5) {
-            self.scrollToCenter(extracted[0].wrapperCenterOffset, windowHalfHeight);
+            self.scrollToCenter(extracted[0].wrapperCenterOffset);
             self.switchActive(extracted[0].key);
-            return false;
+            return true;
           }
           else if (extracted[1].distanceFromCenter < 0) {
-            self.scrollToCenter(extracted[1].wrapperCenterOffset, windowHalfHeight);
+            self.scrollToCenter(extracted[1].wrapperCenterOffset);
             self.switchActive(extracted[1].key);
-            return false;
+            return true;
           }
           else if (extracted[2].distanceFromCenter < 0) {
-            self.scrollToCenter(extracted[2].wrapperCenterOffset, windowHalfHeight);
+            self.scrollToCenter(extracted[2].wrapperCenterOffset);
             self.switchActive(extracted[2].key);
-            return false;
+            return true;
           }
           break;
 
         case 'down':
           if (extracted[0].distanceFromCenter > 0.5) {
-            self.scrollToCenter(extracted[0].wrapperCenterOffset, windowHalfHeight);
+            self.scrollToCenter(extracted[0].wrapperCenterOffset);
             self.switchActive(extracted[0].key);
-            return false;
+            return true;
           }
           else if (extracted[1].distanceFromCenter > 0) {
-            self.scrollToCenter(extracted[1].wrapperCenterOffset, windowHalfHeight);
+            self.scrollToCenter(extracted[1].wrapperCenterOffset);
             self.switchActive(extracted[1].key);
-            return false;
+            return true;
           }
           else if (extracted[2].distanceFromCenter > 0) {
-            self.scrollToCenter(extracted[2].wrapperCenterOffset, windowHalfHeight);
+            self.scrollToCenter(extracted[2].wrapperCenterOffset);
             self.switchActive(extracted[2].key);
-            return false;
+            return true;
           }
           break;
 
         case 'both':
-          self.scrollToCenter(extracted[0].wrapperCenterOffset, windowHalfHeight);
+          self.scrollToCenter(extracted[0].wrapperCenterOffset);
           self.switchActive(extracted[0].key);
-          return false;
+          return true;
       }
     }
   };
@@ -204,4 +236,4 @@ if (typeof Object.create !== 'function') {
 
     return this;
   };
-}(jQuery, document, window, Promise, Object));
+}(jQuery, document, window, Object));
