@@ -10,7 +10,7 @@ if (typeof Object.create !== 'function') {
   };
 }
 
-/*! ScrollSnapTo.js by Rafael Pawlos | http://rafaelpawlos.com | MIT license */
+/*! ScrollSnapTo.js by Rafael Pawlos | http://git.rafaelpawlos.com/scrollsnapto | MIT license */
 
 (function ($, document, window, Object) {
 
