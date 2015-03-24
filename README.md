@@ -5,8 +5,9 @@ ScrollSnapTo
 Project Overview
 ----------------
 
-jQuery plugin to make snap to elements effect on scroll. 
-Version 0.1-dev. Dependencies: jQuery ≥ 1.8
+jQuery plugin to make snap to elements effect on scroll.  
+Version 1.0.0  
+Dependencies: jQuery ≥ 1.8
 
 
 Usage:
