@@ -89,20 +89,41 @@ if (typeof Object.create !== 'function') {
       });
       
       $(document).on('touchend', function (e) {
-        if(self.scrollTopContainer.scrollTop() < self.scrollTopOnStart){
-          callback('up');
-        }
-        else if(self.scrollTopContainer.scrollTop() > self.scrollTopOnStart){
-          callback('down');
-        }
+        self.kineticScroll = false;
+
+        $(window).on('scroll.scrollsnapto.touch', function (e) {
+          clearTimeout(self.scrollTimer);
+          self.kineticScroll = true;
+          self.scrollTimer = setTimeout(function () {
+            if (self.scrollTopContainer.scrollTop() < self.scrollTopOnStart) {
+              callback('up');
+            }
+            else if (self.scrollTopContainer.scrollTop() > self.scrollTopOnStart) {
+              callback('down');
+            }
+            $(window).off('scroll.scrollsnapto.touch');
+          }, delay);
+        });
+
+        setTimeout(function () {
+          if (!self.kineticScroll) {
+            if (self.scrollTopContainer.scrollTop() !== self.scrollTopOnStart) {
+              callback('both');
+            }
+            $(window).off('scroll.scrollsnapto.touch');
+          }
+        }, delay);
       });
       
+      $(document).on('touchstart touchmove', function (e) {
+        self.scrollTopContainer.stop(true);
+      });
     },
     
     getScrollTopOnStart: function(){
       var self = this;
       
-      $(window).one('scroll', function(){
+      $(window).one('scroll touchstart', function(){
         self.scrollTopOnStart = self.scrollTopContainer.scrollTop();
       });
     },
