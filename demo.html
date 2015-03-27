@@ -5,28 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ScrollSnapTo by Rafael Pawlos</title>
     <link href='demo.css' rel='stylesheet' type='text/css'>
+    <link href="http://fonts.googleapis.com/css?family=Fredoka%20One" rel="stylesheet" type="text/css"/>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,400italic' rel='stylesheet' type='text/css'>
   </head>
   <body>
-    <div class="header stage">
-      <h1>ScrollSnapTo.js</h1>
-      <p>jQuery plugin to make snap to elements effect on scroll. Version 0.1-dev.</p>
-      <p>
-        <b>Basic usage:</b>
-      </p>
-      <div style="background: #272822; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;">
-        <pre style="margin: 0; line-height: 125%"><span style="color: #a6e22e">$</span><span style="color: #f8f8f2">(</span><span style="color: #e6db74">&#39;.element-class&#39;</span><span style="color: #f8f8f2">).</span><span style="color: #a6e22e">scrollsnapto</span><span style="color: #f8f8f2">();</span> 
-        </pre></div>
-      <p>
-        <b>Dependencies:</b> jQuery ≥ 1.8
-      </p>
-      <p>
-        <b>License:</b> MIT
-      </p>
-      <p>
-        <b>Author:</b> Rafael Pawlos
-      </p>
 
+    <div class="header stage">
+      <div class="inner">
+        <h1>ScrollSnapTo.js</h1>
+        <p>jQuery plugin to make snap to elements effect on scroll.</p>
+        <div class="fluid-table">
+          <div class="row">
+            <b>Version:</b> <span>1.0.0</span>
+          </div>
+          <div class="row">
+            <b>Dependencies:</b> <span>jQuery ≥ 1.8</span>
+          </div>
+          <div class="row">
+            <b>License:</b> <a href="http://opensource.org/licenses/mit-license.php">MIT</a>
+          </div>
+          <div class="row">
+            <b>Repository:</b> <a href="http://git.rafaelpawlos.com/scrollsnapto">git.rafaelpawlos.com/scrollsnapto</a>
+          </div>
+          <div class="row">
+            <b>Author:</b> <a href="http://rafaelpawlos.com">Rafael Pawlos</a>
+          </div>
+        </div>
+        <p>
+          <b>Basic usage:</b>
+        </p>
+        <div style="background: #272822; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;">
+          <pre style="margin: 0; line-height: 125%"><span style="color: #a6e22e">$</span><span style="color: #f8f8f2">(</span><span style="color: #e6db74">&#39;.element-class&#39;</span><span style="color: #f8f8f2">).</span><span style="color: #a6e22e">scrollsnapto</span><span style="color: #f8f8f2">();</span></pre>
+        </div>
+        <div class="collapse-block"> 
+          <input type="checkbox" class="collapse-switch"><b>Options</b>
+          <div class="fluid-table collapse">
+            <div class="row">
+              <b>speed:</b> <span><u>400</u></span>
+            </div>
+            <div class="row">
+              <b>ease:</b> <span><u>'swing'</u> | 'linear'</span>
+            </div>
+            <div class="row">
+              <b>delay:</b> <span><u>20</u></span>
+            </div>
+            <div class="row">
+              <b>onSnapEnd:</b> <span><u>function () {}</u></span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
     <div class="stage">Lorem ipsum dolor sit amet enim. Etiam ullamcorper. Suspendisse a pellentesque dui, non felis. Maecenas malesuada elit lectus felis, malesuada ultricies. Curabitur et ligula. Ut molestie a, ultricies porta urna. Vestibulum commodo volutpat a, convallis ac, laoreet enim. Phasellus fermentum in, dolor. Pellentesque facilisis. Item 001</div>
     <div class="stage">Lorem ipsum dolor sit amet enim. Etiam ullamcorper. Suspendisse a pellentesque dui, non felis. Maecenas malesuada elit lectus felis, malesuada ultricies. Curabitur et ligula. Ut molestie a, ultricies porta urna. Vestibulum commodo volutpat a, convallis ac, laoreet enim. Phasellus fermentum in, dolor. Pellentesque facilisis. Item 002</div>
     <div class="stage">Lorem ipsum dolor sit amet enim. Etiam ullamcorper. Suspendisse a pellentesque dui, non felis. Maecenas malesuada elit lectus felis, malesuada ultricies. Curabitur et ligula. Ut molestie a, ultricies porta urna. Vestibulum commodo volutpat a, convallis ac, laoreet enim. Phasellus fermentum in, dolor. Pellentesque facilisis. Item 003</div>

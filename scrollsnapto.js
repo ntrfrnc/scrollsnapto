@@ -102,7 +102,7 @@ if (typeof Object.create !== 'function') {
               callback('down');
             }
             $(window).off('scroll.scrollsnapto.touch');
-          }, delay);
+          }, delay+100);
         });
 
         setTimeout(function () {
@@ -112,7 +112,7 @@ if (typeof Object.create !== 'function') {
             }
             $(window).off('scroll.scrollsnapto.touch');
           }
-        }, delay);
+        }, delay+100);
       });
       
       $(document).on('touchstart touchmove', function (e) {
@@ -168,7 +168,6 @@ if (typeof Object.create !== 'function') {
     
     snapTo: function (elements, direction) {
       var self = this;
-
       self.windowHalfHeight = $(window).height() / 2;
       var windowCenterOffset = $(window).scrollTop() + self.windowHalfHeight;
     
