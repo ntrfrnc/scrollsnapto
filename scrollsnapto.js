@@ -25,6 +25,7 @@ if (typeof Object.create !== 'function') {
       self.opts = opts;
       self.elements = elements;
       self.scrollTopContainer = $(/AppleWebKit/.test(navigator.userAgent) ? "body" : "html");
+      self.activeKey = '0';
       
       self.getScrollTopOnStart();
 
@@ -144,11 +145,12 @@ if (typeof Object.create !== 'function') {
       });
     },
     
-    scrollToCenter: function (wrapperCenterOffset) {
+    scrollToElement: function (extractedEl) {
       var self = this;
       
+      var scrollTo = extractedEl.biggerThanViewport ? extractedEl.offsetCenter - self.elements[extractedEl.key].offsetHeight / 2 : extractedEl.offsetCenter - self.windowHalfHeight;
       self.scrollTopContainer.stop(true).animate(
-        {scrollTop: wrapperCenterOffset - self.windowHalfHeight},
+        {scrollTop: scrollTo},
         self.opts.speed,
         self.opts.ease,
         function(){
@@ -158,30 +160,38 @@ if (typeof Object.create !== 'function') {
       );    
     },
     
-    switchActive: function (key) {
+    switchActive: function (extractedEl) {
       var self = this;
       
       if(self.active){
         $(self.active).removeClass('sst-active');  
       }
-      $(self.elements[key]).addClass('sst-active');
-      self.active = self.elements[key]; 
+      $(self.elements[extractedEl.key]).addClass('sst-active');
+      self.activeKey = extractedEl.key;
+      self.activeBiggerThanViewport = extractedEl.biggerThanViewport;
+      self.active = self.elements[extractedEl.key]; 
     },
     
     snapTo: function (elements, direction) {
       var self = this;
-      self.windowHalfHeight = $(window).height() / 2;
-      var windowCenterOffset = $(window).scrollTop() + self.windowHalfHeight;
-    
+
+      self.windowHalfHeight = window.innerHeight / 2;
+      self.windowCenterOffset = window.scrollY + self.windowHalfHeight;
+
       var extracted = Object.keys(elements).map(function (key) {
-        var wrapperCenterOffset = self.getAbsoluteOffsetTop(elements[key]) + elements[key].offsetHeight / 2;
-        var distanceFromCenter = wrapperCenterOffset - windowCenterOffset;
+        var biggerThanViewport = (elements[key].offsetHeight > self.windowHalfHeight * 2) ? true : false;
+        var offsetCenter = self.findOffsetTop(elements[key]) + elements[key].offsetHeight / 2;
+        var distanceFromCenter = (biggerThanViewport) ? elements[key].offsetTop + self.windowHalfHeight - self.windowCenterOffset : offsetCenter - self.windowCenterOffset;
         var distanceFromCenterAbs = Math.abs(distanceFromCenter);
+
         var rObj = {
           key: key,
-          wrapperCenterOffset: wrapperCenterOffset,
+          biggerThanViewport: biggerThanViewport,
           distanceFromCenter: distanceFromCenter,
-          distanceFromCenterAbs: distanceFromCenterAbs
+          distanceFromCenterAbs: distanceFromCenterAbs,
+          offsetCenter: offsetCenter,
+          offsetTop: elements[key].offsetTop,
+          offsetBottom: elements[key].offsetTop + elements[key].offsetHeight
         };
         return rObj;
       });
@@ -196,49 +206,60 @@ if (typeof Object.create !== 'function') {
 
       switch (direction) {
         case 'up':
-          if (extracted[0].distanceFromCenter < -0.5) {
-            self.scrollToCenter(extracted[0].wrapperCenterOffset);
-            self.switchActive(extracted[0].key);
+          console.log(window.scrollY - extracted[0].offsetTop);
+          console.log(window.scrollY - extracted[1].offsetTop);
+          console.log(window.scrollY - extracted[2].offsetTop);
+
+          if (extracted[0].distanceFromCenter < -0.5 && !(extracted[0].biggerThanViewport && extracted[0].key === self.activeKey) && (window.scrollY - extracted[0].offsetTop < self.opts.offsetForBiggersThanViewport || !extracted[0].biggerThanViewport)) {
+            self.scrollToElement(extracted[0]);
+            self.switchActive(extracted[0]);
+            console.log(1);
             return true;
           }
-          else if (extracted[1].distanceFromCenter < 0) {
-            self.scrollToCenter(extracted[1].wrapperCenterOffset);
-            self.switchActive(extracted[1].key);
+          else if (extracted[1].distanceFromCenter < 0  && (window.scrollY - extracted[1].offsetTop < self.opts.offsetForBiggersThanViewport || !extracted[1].biggerThanViewport)) {
+            self.scrollToElement(extracted[1]);
+            self.switchActive(extracted[1]);
+            console.log(2);
             return true;
           }
-          else if (extracted[2].distanceFromCenter < 0) {
-            self.scrollToCenter(extracted[2].wrapperCenterOffset);
-            self.switchActive(extracted[2].key);
+          else if (extracted[2].distanceFromCenter < 0 && (window.scrollY - extracted[2].offsetTop < self.opts.offsetForBiggersThanViewport || !extracted[2].biggerThanViewport)) {
+            self.scrollToElement(extracted[2]);
+            self.switchActive(extracted[2]);
+            console.log(3);
             return true;
           }
           break;
 
         case 'down':
-          if (extracted[0].distanceFromCenter > 0.5) {
-            self.scrollToCenter(extracted[0].wrapperCenterOffset);
-            self.switchActive(extracted[0].key);
+          console.log(extracted[0].offsetBottom - window.scrollY+window.innerHeight);
+                    console.log(extracted[1].offsetBottom - window.scrollY+window.innerHeight);
+                              console.log(extracted[2].offsetBottom - window.scrollY+window.innerHeight);
+          if (extracted[0].distanceFromCenter > 0.5 && !(extracted[0].biggerThanViewport && extracted[0].key === self.activeKey) && (extracted[0].offsetBottom - window.scrollY+window.innerHeight < self.opts.offsetForBiggersThanViewport || (!self.activeBiggerThanViewport && extracted[0].biggerThanViewport) || (!self.activeBiggerThanViewport && extracted[0].biggerThanViewport))) {
+            self.scrollToElement(extracted[0]);
+            self.switchActive(extracted[0]);
+              
             return true;
           }
-          else if (extracted[1].distanceFromCenter > 0) {
-            self.scrollToCenter(extracted[1].wrapperCenterOffset);
-            self.switchActive(extracted[1].key);
+          else if (extracted[1].distanceFromCenter > 0 && !(extracted[1].biggerThanViewport && extracted[1].key === self.activeKey)  && (extracted[1].offsetBottom - window.scrollY+window.innerHeight < self.opts.offsetForBiggersThanViewport || (!self.activeBiggerThanViewport && extracted[1].biggerThanViewport) || (!self.activeBiggerThanViewport && !extracted[1].biggerThanViewport))) {
+            self.scrollToElement(extracted[1]);
+            self.switchActive(extracted[1]);
             return true;
           }
-          else if (extracted[2].distanceFromCenter > 0) {
-            self.scrollToCenter(extracted[2].wrapperCenterOffset);
-            self.switchActive(extracted[2].key);
+          else if (extracted[2].distanceFromCenter > 0 && !(extracted[2].biggerThanViewport && extracted[2].key === self.activeKey) && (extracted[2].offsetBottom - window.scrollY+window.innerHeight < self.opts.offsetForBiggersThanViewport || (!self.activeBiggerThanViewport && extracted[2].biggerThanViewport) || (!self.activeBiggerThanViewport && !extracted[2].biggerThanViewport))) {
+            self.scrollToElement(extracted[2]);
+            self.switchActive(extracted[2]);
             return true;
           }
           break;
 
         case 'both':
-          self.scrollToCenter(extracted[0].wrapperCenterOffset);
-          self.switchActive(extracted[0].key);
+          self.scrollToElement(extracted[0]);
+          self.switchActive(extracted[0]);
           return true;
       }
     },
     
-    getAbsoluteOffsetTop: function (element) {
+    findOffsetTop: function (element) {
       var posY = element.offsetTop;
       while (element.offsetParent) {
         if (element == document.getElementsByTagName('body')[0]) {
@@ -258,6 +279,8 @@ if (typeof Object.create !== 'function') {
       speed: 400,
       ease: 'swing',
       delay: 20,
+      careAboutBiggersThanViewport : true,
+      offsetForBiggersThanViewport : 0,
       onSnapEnd: function(){}
     }, options);
 
