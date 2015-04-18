@@ -15,15 +15,31 @@ a[href]:hover{
   position:relative;
   width:100%;
   height:calc(100% - 30px);
-  height:50%;
+  height:350px;
   padding:10px;
   box-sizing:border-box;
   background:rgba(0,0,0,0.3);
   background:#8a8a8a;
   color:#eee;
   margin: 15px 0;
+  overflow:hidden;
   -webkit-transition:background-color .6s ease 0.3s;
   transition:background-color .6s ease 0.3s;
+}
+.stage:nth-child(3){
+  height:1200px;
+}
+.stage:nth-child(5),
+.stage:nth-child(4){
+  display:inline-block;
+  width:49%;
+}
+.stage:nth-child(5){
+  float:right;
+  margin-top: 150px;
+}
+.stage:nth-child(6){
+  clear:both;
 }
 .stage.header{
   background:#333;
