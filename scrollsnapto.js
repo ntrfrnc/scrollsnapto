@@ -29,7 +29,6 @@ if (typeof Object.create !== 'function') {
       self.getScrollTopOnStart();
 
       self.onWindowScrollStop(function (direction) {
-        self.getScrollTopOnStart();
         self.snapTo(elements, direction);
       }, opts.delay);
     },
@@ -152,7 +151,10 @@ if (typeof Object.create !== 'function') {
         {scrollTop: wrapperCenterOffset - self.windowHalfHeight},
         self.opts.speed,
         self.opts.ease,
-        self.opts.onSnapEnd
+        function(){
+          self.getScrollTopOnStart();
+          self.opts.onSnapEnd();
+        }
       );    
     },
     
@@ -172,7 +174,7 @@ if (typeof Object.create !== 'function') {
       var windowCenterOffset = $(window).scrollTop() + self.windowHalfHeight;
     
       var extracted = Object.keys(elements).map(function (key) {
-        var wrapperCenterOffset = elements[key].offsetTop + elements[key].offsetHeight / 2;
+        var wrapperCenterOffset = self.getAbsoluteOffsetTop(elements[key]) + elements[key].offsetHeight / 2;
         var distanceFromCenter = wrapperCenterOffset - windowCenterOffset;
         var distanceFromCenterAbs = Math.abs(distanceFromCenter);
         var rObj = {
@@ -234,6 +236,20 @@ if (typeof Object.create !== 'function') {
           self.switchActive(extracted[0].key);
           return true;
       }
+    },
+    
+    getAbsoluteOffsetTop: function (element) {
+      var posY = element.offsetTop;
+      while (element.offsetParent) {
+        if (element == document.getElementsByTagName('body')[0]) {
+          break
+        }
+        else {
+          posY = posY + element.offsetParent.offsetTop;
+          element = element.offsetParent;
+        }
+      }
+      return posY;
     }
   };
   
