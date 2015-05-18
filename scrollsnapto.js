@@ -21,10 +21,10 @@ if (typeof Object.create !== 'function') {
 
     init: function (opts, elements) {
       var self = this;
-      
       self.opts = opts;
       self.elements = elements;
       self.scrollTopContainer = $(/AppleWebKit/.test(navigator.userAgent) ? "body" : "html");
+      self.ffAndroidDelayFix = /Android/.test(navigator.userAgent) && /Firefox/.test(navigator.userAgent) ? 400 : 50;
       self.activeKey = '0';
       
       self.getScrollTopOnStart();
@@ -93,6 +93,7 @@ if (typeof Object.create !== 'function') {
 
         $(window).on('scroll.scrollsnapto.touch', function (e) {
           clearTimeout(self.scrollTimer);
+          console.log('scroll!');
           self.kineticScroll = true;
           self.scrollTimer = setTimeout(function () {
             if (self.scrollTopContainer.scrollTop() < self.scrollTopOnStart) {
@@ -102,7 +103,7 @@ if (typeof Object.create !== 'function') {
               callback('down');
             }
             $(window).off('scroll.scrollsnapto.touch');
-          }, delay+100);
+          }, delay+self.ffAndroidDelayFix);
         });
 
         setTimeout(function () {
@@ -112,7 +113,7 @@ if (typeof Object.create !== 'function') {
             }
             $(window).off('scroll.scrollsnapto.touch');
           }
-        }, delay+100);
+        }, delay+self.ffAndroidDelayFix);
       });
       
       $(document).on('touchstart touchmove', function (e) {
@@ -168,7 +169,6 @@ if (typeof Object.create !== 'function') {
       }
       $(self.elements[extractedEl.key]).addClass('sst-active');
       self.activeKey = extractedEl.key;
-      self.activeBiggerThanViewport = extractedEl.biggerThanViewport;
       self.active = self.elements[extractedEl.key]; 
     },
     
@@ -179,19 +179,19 @@ if (typeof Object.create !== 'function') {
       self.windowCenterOffset = window.scrollY + self.windowHalfHeight;
 
       var extracted = Object.keys(elements).map(function (key) {
-        var biggerThanViewport = (elements[key].offsetHeight > self.windowHalfHeight * 2) ? true : false;
-        var offsetCenter = self.findOffsetTop(elements[key]) + elements[key].offsetHeight / 2;
-        var distanceFromCenter = (biggerThanViewport) ? elements[key].offsetTop + self.windowHalfHeight - self.windowCenterOffset : offsetCenter - self.windowCenterOffset;
+        var biggerThanViewport = (elements[key].offsetHeight > self.windowHalfHeight * 2);
+        var offsetTop = self.findOffsetTop(elements[key]);
+        var offsetCenter = offsetTop + elements[key].offsetHeight / 2;
+        var distanceFromCenter = (biggerThanViewport) ? elements[key].offsetTop+(window.innerHeight/2) - self.windowCenterOffset : offsetCenter - self.windowCenterOffset;
         var distanceFromCenterAbs = Math.abs(distanceFromCenter);
-
         var rObj = {
           key: key,
           biggerThanViewport: biggerThanViewport,
           distanceFromCenter: distanceFromCenter,
           distanceFromCenterAbs: distanceFromCenterAbs,
           offsetCenter: offsetCenter,
-          offsetTop: elements[key].offsetTop,
-          offsetBottom: elements[key].offsetTop + elements[key].offsetHeight
+          offsetTop: offsetTop,
+          offsetBottom: offsetTop + elements[key].offsetHeight
         };
         return rObj;
       });
@@ -206,46 +206,36 @@ if (typeof Object.create !== 'function') {
 
       switch (direction) {
         case 'up':
-          console.log(window.scrollY - extracted[0].offsetTop);
-          console.log(window.scrollY - extracted[1].offsetTop);
-          console.log(window.scrollY - extracted[2].offsetTop);
-
-          if (extracted[0].distanceFromCenter < -0.5 && !(extracted[0].biggerThanViewport && extracted[0].key === self.activeKey) && (window.scrollY - extracted[0].offsetTop < self.opts.offsetForBiggersThanViewport || !extracted[0].biggerThanViewport)) {
+          if (extracted[0].distanceFromCenter < -0.5 && extracted[0].key !== self.activeKey && (window.scrollY - extracted[0].offsetTop < window.innerHeight || !extracted[0].biggerThanViewport)) {
             self.scrollToElement(extracted[0]);
             self.switchActive(extracted[0]);
-            console.log(1);
             return true;
           }
-          else if (extracted[1].distanceFromCenter < 0  && (window.scrollY - extracted[1].offsetTop < self.opts.offsetForBiggersThanViewport || !extracted[1].biggerThanViewport)) {
+          else if (extracted[1].distanceFromCenter < 0  && (window.scrollY - extracted[1].offsetTop < window.innerHeight || !extracted[1].biggerThanViewport)) {
             self.scrollToElement(extracted[1]);
             self.switchActive(extracted[1]);
-            console.log(2);
             return true;
           }
-          else if (extracted[2].distanceFromCenter < 0 && (window.scrollY - extracted[2].offsetTop < self.opts.offsetForBiggersThanViewport || !extracted[2].biggerThanViewport)) {
+          else if (extracted[2].distanceFromCenter < 0 && (window.scrollY - extracted[2].offsetTop < window.innerHeight || !extracted[2].biggerThanViewport)) {
             self.scrollToElement(extracted[2]);
             self.switchActive(extracted[2]);
-            console.log(3);
             return true;
           }
           break;
 
         case 'down':
-          console.log(extracted[0].offsetBottom - window.scrollY+window.innerHeight);
-                    console.log(extracted[1].offsetBottom - window.scrollY+window.innerHeight);
-                              console.log(extracted[2].offsetBottom - window.scrollY+window.innerHeight);
-          if (extracted[0].distanceFromCenter > 0.5 && !(extracted[0].biggerThanViewport && extracted[0].key === self.activeKey) && (extracted[0].offsetBottom - window.scrollY+window.innerHeight < self.opts.offsetForBiggersThanViewport || (!self.activeBiggerThanViewport && extracted[0].biggerThanViewport) || (!self.activeBiggerThanViewport && extracted[0].biggerThanViewport))) {
+          var windowBottomEdge =  window.scrollY+window.innerHeight;
+          if (extracted[0].distanceFromCenter > 0.5 && extracted[0].key !== self.activeKey && (extracted[0].offsetTop - windowBottomEdge < self.opts.offsetForBiggersThanViewport)) {
             self.scrollToElement(extracted[0]);
             self.switchActive(extracted[0]);
-              
             return true;
           }
-          else if (extracted[1].distanceFromCenter > 0 && !(extracted[1].biggerThanViewport && extracted[1].key === self.activeKey)  && (extracted[1].offsetBottom - window.scrollY+window.innerHeight < self.opts.offsetForBiggersThanViewport || (!self.activeBiggerThanViewport && extracted[1].biggerThanViewport) || (!self.activeBiggerThanViewport && !extracted[1].biggerThanViewport))) {
+          else if (extracted[1].distanceFromCenter > 0 && (extracted[1].offsetTop - windowBottomEdge < self.opts.offsetForBiggersThanViewport)) {
             self.scrollToElement(extracted[1]);
             self.switchActive(extracted[1]);
             return true;
           }
-          else if (extracted[2].distanceFromCenter > 0 && !(extracted[2].biggerThanViewport && extracted[2].key === self.activeKey) && (extracted[2].offsetBottom - window.scrollY+window.innerHeight < self.opts.offsetForBiggersThanViewport || (!self.activeBiggerThanViewport && extracted[2].biggerThanViewport) || (!self.activeBiggerThanViewport && !extracted[2].biggerThanViewport))) {
+          else if (extracted[2].distanceFromCenter > 0 && (extracted[2].offsetTop - windowBottomEdge < self.opts.offsetForBiggersThanViewport)) {
             self.scrollToElement(extracted[2]);
             self.switchActive(extracted[2]);
             return true;
@@ -262,7 +252,7 @@ if (typeof Object.create !== 'function') {
     findOffsetTop: function (element) {
       var posY = element.offsetTop;
       while (element.offsetParent) {
-        if (element == document.getElementsByTagName('body')[0]) {
+        if (element === document.getElementsByTagName('body')[0]) {
           break
         }
         else {
@@ -280,7 +270,7 @@ if (typeof Object.create !== 'function') {
       ease: 'swing',
       delay: 20,
       careAboutBiggersThanViewport : true,
-      offsetForBiggersThanViewport : 0,
+      offsetForBiggersThanViewport : 10,
       onSnapEnd: function(){}
     }, options);
 
