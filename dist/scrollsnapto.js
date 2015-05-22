@@ -225,7 +225,7 @@ if (typeof Object.create !== 'function') {
       switch (direction) {
         case 'up':
           for (var i = 0; i < 3; i++) {
-            if (extracted[i].distanceFromCenter < -0.5 && extracted[i].key !== self.activeKey && (window.scrollY - extracted[i].offsetTop < window.innerHeight || !extracted[i].biggerThanViewport)) {
+            if (extracted[i].distanceFromCenter < -0.5 && extracted[i].key !== self.activeKey && (window.pageYOffset - extracted[i].offsetTop < window.innerHeight || !extracted[i].biggerThanViewport)) {
               self.scrollToElement(extracted[i]);
               self.switchActive(extracted[i]);
               return true;
@@ -236,7 +236,7 @@ if (typeof Object.create !== 'function') {
         case 'down':
           var windowBottomEdge = window.pageYOffset + window.innerHeight;
           for (var i = 0; i < 3; i++) {
-            if (extracted[i].distanceFromCenter > 0.5 && extracted[i].key !== self.activeKey && (extracted[i].offsetTop - windowBottomEdge < self.opts.offsetForBiggersThanViewport)) {
+            if (extracted[i].distanceFromCenter > 0.5 && extracted[i].key !== self.activeKey && (extracted[i].offsetTop - windowBottomEdge < 0)) {
               self.scrollToElement(extracted[i]);
               self.switchActive(extracted[i]);
               return true;
@@ -271,8 +271,6 @@ if (typeof Object.create !== 'function') {
       speed: 400,
       ease: 'swing',
       delay: 20,
-      careAboutBiggersThanViewport : true,
-      offsetForBiggersThanViewport : 10,
       onSnapEnd: function(){}
     }, options);
 
