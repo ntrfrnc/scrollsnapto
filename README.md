@@ -5,7 +5,7 @@ ScrollSnapTo
 Project Overview
 ----------------
 
-jQuery plugin to assist scrolling by snaping to elements. 
+jQuery plugin to assist scrolling by snaping to elements.  
 **Version:** 0.2.0-alpha  
 **Dependencies:** jQuery ≥ 1.7  
 **Support:** Latest Mozilla Firefox, Google Chrome and IE9+.   
