@@ -37,7 +37,7 @@ if (typeof Object.create !== 'function') {
     onWindowScrollStop: function (callback, delay) {
       var self = this;
               
-      self.onScrollbar('mouseup', function(){
+      self.onScrollbarMouseUp(function(){
         if(self.scrollTopContainer.scrollTop() < self.scrollTopOnStart){
           callback('up');
         }
@@ -68,8 +68,8 @@ if (typeof Object.create !== 'function') {
         }, delay + 300);
       });
 
-      $('body').on('mouseup', function (e) {
-        if (e.button === 1) {
+      $(document).on('mouseup', function (e) {
+        if (e.which === 2 || e.button === 4) {
           if(self.scrollTopContainer.scrollTop() < self.scrollTopOnStart){
             callback('up');
           }
@@ -93,7 +93,6 @@ if (typeof Object.create !== 'function') {
 
         $(window).on('scroll.scrollsnapto.touch', function (e) {
           clearTimeout(self.scrollTimer);
-          console.log('scroll!');
           self.kineticScroll = true;
           self.scrollTimer = setTimeout(function () {
             if (self.scrollTopContainer.scrollTop() < self.scrollTopOnStart) {
@@ -129,21 +128,40 @@ if (typeof Object.create !== 'function') {
       });
     },
     
-    onScrollbar: function (event, callback) {
+    onScrollbarMouseUp: function (callback) {
       var self = this;
 
-      $('body').on(event, function () {
+      $('body').on('mouseup', function () {
         self.onContentEvent = true;
         setTimeout(function () {
           self.onContentEvent = false;
         }, 10);
       });
-      $(window).on(event, function () {
-        if (self.onContentEvent) {
-          return;
+      $(window).on('mouseup', function (e) {
+        if (!self.onContentEvent) {
+          callback();
         }
-        callback();
       });
+      
+      if (/Trident/.test(navigator.userAgent)) {
+        $('body').on('mousedown', function () {
+          self.onContentEvent = true;
+          setTimeout(function () {
+            self.onContentEvent = false;
+          }, 10);
+        });
+        $(window).on('mousedown', function (e) {
+          if (!self.onContentEvent) {
+            $(window).on('scroll', function (e) {
+              clearTimeout(self.scrollTimer);
+              self.scrollTimer = setTimeout(function () {
+                callback();
+                $(window).off('scroll');
+              }, 50);
+            });
+          }
+        });
+      }
     },
     
     scrollToElement: function (extractedEl) {
@@ -176,13 +194,13 @@ if (typeof Object.create !== 'function') {
       var self = this;
 
       self.windowHalfHeight = window.innerHeight / 2;
-      self.windowCenterOffset = window.scrollY + self.windowHalfHeight;
+      self.windowCenterOffset = window.pageYOffset + self.windowHalfHeight;
 
       var extracted = Object.keys(elements).map(function (key) {
         var biggerThanViewport = (elements[key].offsetHeight > self.windowHalfHeight * 2);
         var offsetTop = self.findOffsetTop(elements[key]);
         var offsetCenter = offsetTop + elements[key].offsetHeight / 2;
-        var distanceFromCenter = (biggerThanViewport) ? elements[key].offsetTop+(window.innerHeight/2) - self.windowCenterOffset : offsetCenter - self.windowCenterOffset;
+        var distanceFromCenter = (biggerThanViewport) ? offsetTop + (window.innerHeight / 2) - self.windowCenterOffset : offsetCenter - self.windowCenterOffset;
         var distanceFromCenterAbs = Math.abs(distanceFromCenter);
         var rObj = {
           key: key,
@@ -203,42 +221,26 @@ if (typeof Object.create !== 'function') {
           return a.distanceFromCenterAbs - b.distanceFromCenterAbs;
         }
       });
-
+      
       switch (direction) {
         case 'up':
-          if (extracted[0].distanceFromCenter < -0.5 && extracted[0].key !== self.activeKey && (window.scrollY - extracted[0].offsetTop < window.innerHeight || !extracted[0].biggerThanViewport)) {
-            self.scrollToElement(extracted[0]);
-            self.switchActive(extracted[0]);
-            return true;
-          }
-          else if (extracted[1].distanceFromCenter < 0  && (window.scrollY - extracted[1].offsetTop < window.innerHeight || !extracted[1].biggerThanViewport)) {
-            self.scrollToElement(extracted[1]);
-            self.switchActive(extracted[1]);
-            return true;
-          }
-          else if (extracted[2].distanceFromCenter < 0 && (window.scrollY - extracted[2].offsetTop < window.innerHeight || !extracted[2].biggerThanViewport)) {
-            self.scrollToElement(extracted[2]);
-            self.switchActive(extracted[2]);
-            return true;
+          for (var i = 0; i < 3; i++) {
+            if (extracted[i].distanceFromCenter < -0.5 && extracted[i].key !== self.activeKey && (window.scrollY - extracted[i].offsetTop < window.innerHeight || !extracted[i].biggerThanViewport)) {
+              self.scrollToElement(extracted[i]);
+              self.switchActive(extracted[i]);
+              return true;
+            }
           }
           break;
 
         case 'down':
-          var windowBottomEdge =  window.scrollY+window.innerHeight;
-          if (extracted[0].distanceFromCenter > 0.5 && extracted[0].key !== self.activeKey && (extracted[0].offsetTop - windowBottomEdge < self.opts.offsetForBiggersThanViewport)) {
-            self.scrollToElement(extracted[0]);
-            self.switchActive(extracted[0]);
-            return true;
-          }
-          else if (extracted[1].distanceFromCenter > 0 && (extracted[1].offsetTop - windowBottomEdge < self.opts.offsetForBiggersThanViewport)) {
-            self.scrollToElement(extracted[1]);
-            self.switchActive(extracted[1]);
-            return true;
-          }
-          else if (extracted[2].distanceFromCenter > 0 && (extracted[2].offsetTop - windowBottomEdge < self.opts.offsetForBiggersThanViewport)) {
-            self.scrollToElement(extracted[2]);
-            self.switchActive(extracted[2]);
-            return true;
+          var windowBottomEdge = window.pageYOffset + window.innerHeight;
+          for (var i = 0; i < 3; i++) {
+            if (extracted[i].distanceFromCenter > 0.5 && extracted[i].key !== self.activeKey && (extracted[i].offsetTop - windowBottomEdge < self.opts.offsetForBiggersThanViewport)) {
+              self.scrollToElement(extracted[i]);
+              self.switchActive(extracted[i]);
+              return true;
+            }
           }
           break;
 
