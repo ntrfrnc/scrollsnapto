@@ -10,7 +10,7 @@ jQuery plugin to assist scrolling by snaping to elements.
 **Dependencies:** jQuery ≥ 1.7  
 **Support:** Latest Mozilla Firefox, Google Chrome and IE9+.   
 
-[SEE DEMO](http://rafaelpawlos.com/checkboxrange)
+[SEE DEMO](http://rafaelpawlos.com/scrollsnapto)
 
 Usage:
 ----------------
