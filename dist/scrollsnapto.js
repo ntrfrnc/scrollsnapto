@@ -1,15 +1,3 @@
-'use strict';
-
-// Create objects in older browsers
-if (typeof Object.create !== 'function') {
-  Object.create = function (obj) {
-    function F() {
-    }
-    F.prototype = obj;
-    return new F();
-  };
-}
-
 /*! ScrollSnapTo.js by Rafael Pawlos | http://git.rafaelpawlos.com/scrollsnapto | MIT license */
 
 (function ($, document, window, Object) {
@@ -18,15 +6,13 @@ if (typeof Object.create !== 'function') {
   var storageName = 'plugin_' + pluginName;
 
   var pluginObject = {
-
     init: function (opts, elements) {
       var self = this;
       self.opts = opts;
       self.elements = elements;
       self.scrollTopContainer = $(/AppleWebKit/.test(navigator.userAgent) ? "body" : "html");
-      self.ffAndroidDelayFix = /Android/.test(navigator.userAgent) && /Firefox/.test(navigator.userAgent) ? 400 : 50;
-      self.activeKey = '0';
-      
+      self.ffAndroidDelayFix = /Android/.test(navigator.userAgent) && /Firefox/.test(navigator.userAgent) ? 300 : 70;
+
       self.getScrollTopOnStart();
 
       self.onWindowScrollStop(function (direction) {
@@ -36,14 +22,10 @@ if (typeof Object.create !== 'function') {
     
     onWindowScrollStop: function (callback, delay) {
       var self = this;
-              
-      self.onScrollbarMouseUp(function(){
-        if(self.scrollTopContainer.scrollTop() < self.scrollTopOnStart){
-          callback('up');
-        }
-        else if(self.scrollTopContainer.scrollTop() > self.scrollTopOnStart){
-          callback('down');
-        }
+
+      self.onScrollbarMouseUp(function () {
+        var direction = self.getScrollDirection();
+        callback(direction);
       });
 
       $(window).on('mousewheel DOMMouseScroll', function (e) {
@@ -52,13 +34,15 @@ if (typeof Object.create !== 'function') {
         self.wheelScrollTimer = setTimeout(function () {
 
           if (e.originalEvent.wheelDelta >= 0 || e.originalEvent.detail < 0) {
-            callback('up');
+            var direction = 'up';
           }
           else {
-            callback('down');
+            var direction = 'down';
           }
+          
+          callback(direction);
 
-        }, delay+50);
+        }, delay + 50);
       });
 
       $(window).on('resize', function (e) {
@@ -70,24 +54,20 @@ if (typeof Object.create !== 'function') {
 
       $(document).on('mouseup', function (e) {
         if (e.which === 2 || e.button === 4) {
-          if(self.scrollTopContainer.scrollTop() < self.scrollTopOnStart){
-            callback('up');
-          }
-          else if(self.scrollTopContainer.scrollTop() > self.scrollTopOnStart){
-            callback('down');
-          }
+          var direction = self.getScrollDirection();
+          callback(direction);
         }
       });
-      
+
       $(document).on('keyup', function (e) {
         if (e.keyCode === 38) {
           callback('up');
         }
-        else if(e.keyCode === 40){
+        else if (e.keyCode === 40) {
           callback('down');
         }
       });
-      
+
       $(document).on('touchend', function (e) {
         self.kineticScroll = false;
 
@@ -95,35 +75,41 @@ if (typeof Object.create !== 'function') {
           clearTimeout(self.scrollTimer);
           self.kineticScroll = true;
           self.scrollTimer = setTimeout(function () {
-            if (self.scrollTopContainer.scrollTop() < self.scrollTopOnStart) {
-              callback('up');
-            }
-            else if (self.scrollTopContainer.scrollTop() > self.scrollTopOnStart) {
-              callback('down');
-            }
+            var direction = self.getScrollDirection();
+            callback(direction);
             $(window).off('scroll.scrollsnapto.touch');
-          }, delay+self.ffAndroidDelayFix);
+          }, delay + self.ffAndroidDelayFix);
         });
 
         setTimeout(function () {
           if (!self.kineticScroll) {
-            if (self.scrollTopContainer.scrollTop() !== self.scrollTopOnStart) {
-              callback('both');
-            }
-            $(window).off('scroll.scrollsnapto.touch');
+            var direction = self.getScrollDirection();
+            callback(direction);
           }
-        }, delay+self.ffAndroidDelayFix);
+          $(window).off('scroll.scrollsnapto.touch');
+        }, delay + self.ffAndroidDelayFix);
       });
-      
+
       $(document).on('touchstart touchmove', function (e) {
         self.scrollTopContainer.stop(true);
       });
     },
     
-    getScrollTopOnStart: function(){
+    getScrollDirection: function () {
       var self = this;
       
-      $(window).one('scroll touchstart', function(){
+      if (self.scrollTopContainer.scrollTop() < self.scrollTopOnStart) {
+        return 'up';
+      }
+      else if (self.scrollTopContainer.scrollTop() > self.scrollTopOnStart) {
+        return 'down';
+      }
+    },
+    
+    getScrollTopOnStart: function () {
+      var self = this;
+
+      $(window).one('scroll touchstart', function () {
         self.scrollTopOnStart = self.scrollTopContainer.scrollTop();
       });
     },
@@ -142,7 +128,7 @@ if (typeof Object.create !== 'function') {
           callback();
         }
       });
-      
+
       if (/Trident/.test(navigator.userAgent)) {
         $('body').on('mousedown', function () {
           self.onContentEvent = true;
@@ -166,28 +152,28 @@ if (typeof Object.create !== 'function') {
     
     scrollToElement: function (extractedEl) {
       var self = this;
-      
+
+      self.switchActive(extractedEl);
       var scrollTo = extractedEl.biggerThanViewport ? extractedEl.offsetCenter - self.elements[extractedEl.key].offsetHeight / 2 : extractedEl.offsetCenter - self.windowHalfHeight;
       self.scrollTopContainer.stop(true).animate(
-        {scrollTop: scrollTo},
-        self.opts.speed,
-        self.opts.ease,
-        function(){
-          self.getScrollTopOnStart();
-          self.opts.onSnapEnd();
-        }
-      );    
+              {scrollTop: scrollTo},
+              self.opts.speed,
+              self.opts.ease,
+              function () {
+                self.getScrollTopOnStart();
+                self.opts.onSnapEnd();
+              }
+      );
     },
     
     switchActive: function (extractedEl) {
       var self = this;
-      
-      if(self.active){
-        $(self.active).removeClass('sst-active');  
+
+      if (self.active) {
+        $(self.active).removeClass('sst-active');
       }
       $(self.elements[extractedEl.key]).addClass('sst-active');
-      self.activeKey = extractedEl.key;
-      self.active = self.elements[extractedEl.key]; 
+      self.active = self.elements[extractedEl.key];
     },
     
     snapTo: function (elements, direction) {
@@ -208,26 +194,24 @@ if (typeof Object.create !== 'function') {
           distanceFromCenter: distanceFromCenter,
           distanceFromCenterAbs: distanceFromCenterAbs,
           offsetCenter: offsetCenter,
-          offsetTop: offsetTop,
-          offsetBottom: offsetTop + elements[key].offsetHeight
+          offsetTop: offsetTop
         };
         return rObj;
       });
 
       extracted.sort(function (a, b) {
-        if (!isFinite(a.distanceFromCenterAbs - b.distanceFromCenterAbs)){
+        if (!isFinite(a.distanceFromCenterAbs - b.distanceFromCenterAbs)) {
           return !isFinite(a.distanceFromCenterAbs) ? 1 : -1;
-        }else{
+        } else {
           return a.distanceFromCenterAbs - b.distanceFromCenterAbs;
         }
       });
-      
+
       switch (direction) {
         case 'up':
           for (var i = 0; i < 3; i++) {
-            if (extracted[i].distanceFromCenter < -0.5 && extracted[i].key !== self.activeKey && (window.pageYOffset - extracted[i].offsetTop < window.innerHeight || !extracted[i].biggerThanViewport)) {
+            if (extracted[i].distanceFromCenter < -0.5 && (window.pageYOffset - extracted[i].offsetTop < window.innerHeight || !extracted[i].biggerThanViewport)) {
               self.scrollToElement(extracted[i]);
-              self.switchActive(extracted[i]);
               return true;
             }
           }
@@ -236,9 +220,8 @@ if (typeof Object.create !== 'function') {
         case 'down':
           var windowBottomEdge = window.pageYOffset + window.innerHeight;
           for (var i = 0; i < 3; i++) {
-            if (extracted[i].distanceFromCenter > 0.5 && extracted[i].key !== self.activeKey && (extracted[i].offsetTop - windowBottomEdge < 0)) {
+            if (extracted[i].distanceFromCenter > 0.5 && (extracted[i].offsetTop - windowBottomEdge < 0)) {
               self.scrollToElement(extracted[i]);
-              self.switchActive(extracted[i]);
               return true;
             }
           }
@@ -246,7 +229,6 @@ if (typeof Object.create !== 'function') {
 
         case 'both':
           self.scrollToElement(extracted[0]);
-          self.switchActive(extracted[0]);
           return true;
       }
     },
@@ -265,13 +247,14 @@ if (typeof Object.create !== 'function') {
       return posY;
     }
   };
-  
+
   $.fn[pluginName] = function (options) {
     var opts = $.extend(true, {
       speed: 400,
       ease: 'swing',
       delay: 20,
-      onSnapEnd: function(){}
+      onSnapEnd: function () {
+      }
     }, options);
 
     var pluginInstance = $.data(window, storageName);
@@ -286,3 +269,13 @@ if (typeof Object.create !== 'function') {
     return this;
   };
 }(jQuery, document, window, Object));
+
+// Create objects in older browsers
+if (typeof Object.create !== 'function') {
+  Object.create = function (obj) {
+    function F() {
+    }
+    F.prototype = obj;
+    return new F();
+  };
+}

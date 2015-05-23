@@ -34,7 +34,6 @@ module.exports = function (grunt) {
       },
       rmprefixes: {
         files: {
-          'dist/': 'dist/<%= pkg.name %>.css',
           './': 'demo.css'
         },
         options: {
@@ -51,9 +50,6 @@ module.exports = function (grunt) {
       options: {
         cascade: false
       },
-      dist: {
-        src: 'dist/<%= pkg.name %>.css'
-      },
       demo: {
         src: 'demo.css'
       }
@@ -66,17 +62,6 @@ module.exports = function (grunt) {
         src: 'dist/<%= pkg.name %>.js',
         dest: 'dist/<%= pkg.name %>.min.js'
       }
-    },
-    cssmin: {
-      target: {
-        files: [{
-            expand: true,
-            cwd: 'dist',
-            src: ['*.css', '!*.min.css'],
-            dest: 'dist',
-            ext: '.min.css'
-          }]
-      }
     }
   });
 
@@ -86,10 +71,10 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-cssmin');
 
   // Default task(s).
-  grunt.registerTask('default', ['autoprefixer', 'uglify', 'cssmin']);
-  grunt.registerTask('rebuild', ['string-replace', 'autoprefixer', 'uglify', 'cssmin']);
-  grunt.registerTask('css', ['autoprefixer', 'cssmin']);
-  grunt.registerTask('cssrebuild', ['string-replace:rmprefixes', 'autoprefixer', 'cssmin']);
-  grunt.registerTask('vup', ['string-replace:title', 'string-replace:version', 'uglify', 'cssmin']);
+  grunt.registerTask('default', ['autoprefixer', 'uglify']);
+  grunt.registerTask('rebuild', ['string-replace', 'autoprefixer', 'uglify']);
+  grunt.registerTask('css', ['autoprefixer']);
+  grunt.registerTask('cssrebuild', ['string-replace:rmprefixes', 'autoprefixer']);
+  grunt.registerTask('vup', ['string-replace:title', 'string-replace:version', 'uglify']);
 
 };
