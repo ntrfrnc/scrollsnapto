@@ -1,19 +1,19 @@
 {
   "name": "scrollsnapto",
   "version": "0.2.0-alpha",
-  "author": "Rafael Pawlos (http://rafaelpawlos.com)",
+  "author": "Rafael Pawlos (https://pawlos.dev)",
   "description": "jQuery plugin to assist scrolling by snaping to elements.",
   "keywords": [
     "scroll",
     "snap"
   ],
-  "homepage": "http://rafaelpawlos.com/scrollsnapto",
+  "homepage": "https://pawlos.dev/scrollsnapto",
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/rxl/scrollsnapto.git"
+    "url": "https://github.com/ntrfrnc/scrollsnapto.git"
   },
   "bugs": {
-    "url": "https://bitbucket.org/rxl/scrollsnapto/issues"
+    "url": "https://github.com/ntrfrnc/scrollsnapto/issues"
   },
   "license": "MIT",
   "devDependencies": {

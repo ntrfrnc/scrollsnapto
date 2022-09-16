@@ -10,7 +10,7 @@ jQuery plugin to assist scrolling by snaping to elements.
 **Dependencies:** jQuery ≥ 1.7  
 **Support:** Latest Mozilla Firefox, Google Chrome and IE9+.   
 
-[SEE DEMO](http://rafaelpawlos.com/scrollsnapto)
+[SEE DEMO](https://pawlos.dev/scrollsnapto)
 
 Usage:
 ----------------
@@ -40,4 +40,4 @@ ScrollSnapTo is released under the terms of the MIT license. See LICENSE file fo
 Credits
 ----------------
 
-ScrollSnapTo is developed by Rafael Pawlos, http://rafaelpawlos.com
+ScrollSnapTo is developed by Rafael Pawlos, [pawlos.dev](https://pawlos.dev)

@@ -1,4 +1,4 @@
-/*! ScrollSnapTo.js by Rafael Pawlos | http://git.rafaelpawlos.com/scrollsnapto | MIT license */
+/*! ScrollSnapTo.js by Rafael Pawlos | https://pawlos.dev/scrollsnapto | MIT license */
 
 (function ($, document, window, Object) {
 
